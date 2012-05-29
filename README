@@ -1,2 +1,4 @@
-An implementation of a very simple LISP family language.  Hopefully Turing
+An implementation of a very basic LISP-family language.  Hopefully Turing
 complete.
+
+Currently only works in Python 3.

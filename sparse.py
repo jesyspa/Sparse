@@ -17,12 +17,12 @@ def _sparse_impl(elts, pos):
     """Return a parse tree and the position one past where it ended."""
     if elts[pos] != '(':
         return _parse_atom(elts[pos]), pos+1
-    contents = []
+    values = []
     pos += 1
     while elts[pos] != ')':
         value, tokens = _sparse_impl(elts, pos)
-        contents.append(value)
+        values.append(value)
         pos = tokens
-    return SNode('list', tuple(contents)), pos+1
+    return SNode('list', tuple(values)), pos+1
 
 
