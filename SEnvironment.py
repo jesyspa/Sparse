@@ -39,3 +39,7 @@ class SEnvironment:
             return self.parent._get_env_with(key)
         return None
 
+    def __contains__(self, item):
+        """Check whether any of the layers contains the given key."""
+        return self._get_env_with(item) is not None
+
