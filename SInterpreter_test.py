@@ -14,3 +14,4 @@ def SInterp_recursive_test():
     interp = SInterpreter()
     interp.seval('(define f (lambda (y) (if (= y 0) 0 (f (- y 1)))))')
     eq_(interp.seval('(f 2)'), 0)
+

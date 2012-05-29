@@ -1,3 +1,4 @@
+from sparse import sprint
 from seval import seval
 from SEnvironment import SEnvironment
 import operator
@@ -22,7 +23,12 @@ class SInterpreter:
         self._outer_scope.define('1+', lambda x: x-1)
         self._outer_scope.define('not', operator.not_)
         self._outer_scope.define('read-int', lambda: int(input('')))
-        self._outer_scope.define('print', lambda x: print(x))
+        self._outer_scope.define('print', lambda x: sprint(x))
+        self._outer_scope.define('head', lambda x: x[0])
+        self._outer_scope.define('tail', lambda x: x[1:])
+        self._outer_scope.define('nil', tuple())
+        self._outer_scope.define('#t', True)
+        self._outer_scope.define('#f', False)
 
     def seval(self, string):
         """Parse the given code and return the result."""

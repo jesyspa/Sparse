@@ -38,10 +38,17 @@ def _lambda_impl(env, params, *code):
         return _seval_impl(code[-1], inner_env)
     return impl
 
+def _quote_impl(env, elt):
+    """Return the quoted object verbatim."""
+    if elt.type != 'list':
+        return elt.value
+    return tuple(_quote_impl(env, e) for e in elt.value)
+
 SPECIAL_FORMS = {
     'if': _if_impl, 
     'define': _define_impl,
     'lambda': _lambda_impl,
+    'quote': _quote_impl,
         }
 
 def _seval_impl(tree, env):

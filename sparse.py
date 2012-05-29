@@ -5,6 +5,19 @@ def sparse(string):
     elts = string.replace('(', ' ( ').replace(')', ' ) ').split()
     return _sparse_impl(elts, 0)[0]
 
+def sunparse(quote):
+    """Return the given value as a string with an S-expression."""
+    if isinstance(quote, SNode):
+        quote = quote.value
+    if isinstance(quote, tuple):
+        return '(' + ' '.join([sunparse(e) for e in quote]) + ')'
+    else:
+        return str(quote)
+
+def sprint(quote):
+    """Print the given value as an S-expression."""
+    print(sunparse(quote))
+
 def _parse_atom(atom):
     """Return a type, value tuple for an atom."""
     try:

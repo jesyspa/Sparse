@@ -1,5 +1,6 @@
 #!/usr/bin/python
 
+from sparse import sprint
 from SInterpreter import SInterpreter
 
 def main():
@@ -7,7 +8,7 @@ def main():
     interp = SInterpreter()
     while True:
         try:
-            print(interp.seval(input('>>> ')))
+            sprint(interp.seval(input('>>> ')))
         except IndexError:
             print('Index error: are you missing a closing parenthesis?')
         except EOFError:

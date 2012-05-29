@@ -45,3 +45,8 @@ def seval_lambda_test():
 def seval_lambda_with_args_test():
     eq_(seval('((lambda (x) x) 5)'), 5)
 
+def seval_quote_test():
+    eq_(seval('(quote (1 2 3))'), (1, 2, 3))
+
+def seval_quote_quote_test():
+    eq_(seval('(quote (quote (1 2 3)))'), ('quote', (1, 2, 3)))
