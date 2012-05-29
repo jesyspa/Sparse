@@ -26,3 +26,12 @@ def sparse_sunparse_id_test():
 
 def sparse_sunparse_list_test():
     eq_(sunparse(sparse('(1 b)')), '(1 b)')
+
+def sparse_quote_num_test():
+    eq_(sunparse(sparse("'5")), '(quote 5)')
+
+def sparse_quote_id_test():
+    eq_(sunparse(sparse("'x")), '(quote x)')
+
+def sparse_quote_list_test():
+    eq_(sunparse(sparse("'(1 2)")), '(quote (1 2))')

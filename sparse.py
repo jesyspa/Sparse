@@ -2,7 +2,10 @@ from SNode import SNode
 
 def sparse(string):
     """Return a parse tree of string."""
-    elts = string.replace('(', ' ( ').replace(')', ' ) ').split()
+    elts = (string.replace('(', ' ( ')
+                  .replace(')', ' ) ')
+                  .replace("'", " ' ")
+                  .split())
     return _sparse_impl(elts, 0)[0]
 
 def sunparse(quote):
@@ -28,7 +31,10 @@ def _parse_atom(atom):
 
 def _sparse_impl(elts, pos):
     """Return a parse tree and the position one past where it ended."""
-    if elts[pos] != '(':
+    if elts[pos] == "'":
+        rest, pos = _sparse_impl(elts, pos+1)
+        return SNode('list', (SNode('id', 'quote'), rest)), pos
+    elif elts[pos] != '(':
         return _parse_atom(elts[pos]), pos+1
     values = []
     pos += 1
