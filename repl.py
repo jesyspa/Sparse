@@ -8,9 +8,13 @@ def main():
     interp = SInterpreter()
     while True:
         try:
-            sprint(interp.seval(input('>>> ')))
-        except IndexError:
-            print('Index error: are you missing a closing parenthesis?')
+            line = input('>>> ')
+            while line.count('(') > line.count(')'):
+                line += ' ' + input('... ' + ' ' * 2 * (line.count('(') -
+                    line.count(')')))
+            if line.count('(') < line.count(')'):
+                raise Exception("Too many closing parentheses.")
+            sprint(interp.seval(line))
         except EOFError:
             print('Bye')
             return
