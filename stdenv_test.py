@@ -23,3 +23,6 @@ def stdenv_defun_test():
     env = make_stdenv()
     seval('(~defun add (a b) (+ a b))', env)
     eq_(seval_strip('(add 1 2)', env), 3)
+
+def stdenv_append_test():
+    eq_(seval_strip('(~append (1 2) (3 4) (5))', make_stdenv()), (1, 2, 3, 4, 5))

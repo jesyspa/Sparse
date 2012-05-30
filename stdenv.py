@@ -92,6 +92,13 @@ def _make_func(func):
             raise Exception("Unexpected return type of function: {}".format(type(value)))
     return SNode('function', impl)
 
+def _append(env, *lists):
+    result = tuple()
+    for li in lists:
+        assert li.type == 'list', "Attempting to append a non-list."
+        result += li.value
+    return SNode('list', result)
+
 def make_stdenv():
     """Return an SEnvironment with builtins."""
     builtins = SEnvironment()
@@ -113,6 +120,7 @@ def make_stdenv():
     builtins.define('print', SNode('function', _print))
     builtins.define('apply', SNode('function', _apply))
     builtins.define('list', _make_func(lambda *args: args))
+    builtins.define('append', SNode('function', _append))
     builtins.define('cons', SNode('function', _cons))
     builtins.define('head', _make_func(lambda x: x[0]))
     builtins.define('tail', _make_func(lambda x: x[1:]))
@@ -129,9 +137,9 @@ def make_stdenv():
     builtins.define('quasiquote', SNode('function', _quasiquote))
     seval("""
         (~define defun
-          (~lambda (name args body)
+          (~lambda (name args . body)
             (eval `(~define ,name
-                     (~lambda ,args ,body)) (parent-env))))
+                     ,(append `(~lambda ,args) body)) (parent-env))))
     """, builtins)
     return builtins
 
