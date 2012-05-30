@@ -38,3 +38,13 @@ def sparse_quote_list_test():
 
 def sparse_sf_test():
     eq_(sparse("(~)"), SNode('list', (SNode('sf', '~'),)))
+
+def sparse_quasiquote_test():
+    eq_(sunparse(sparse("`(a b)")), '(~ quasiquote (a b))')
+
+def sparse_unquote_test():
+    eq_(sunparse(sparse("`(a ,b)")), '(~ quasiquote (a (unquote b)))')
+
+def sparse_dot_test():
+    eq_(sunparse(sparse("(1 . 2)")), '((1) 2)')
+

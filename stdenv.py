@@ -37,6 +37,19 @@ def _quote(env, elt):
         return elt
     return SNode('list', tuple(_quote(env, e) for e in elt.value))
 
+def _quasiquote(env, elt):
+    """Return the quoted expression, unquoting unquotes."""
+    if elt.type != 'list':
+        return elt
+    if (len(elt.value) > 0 and elt.value[0].type == 'id'
+            and elt.value[0].value == 'unquote'):
+        return seval_tree(elt.value[1], env)
+    return SNode('list', tuple(_quasiquote(env, e) for e in elt.value))
+
+def _cons(env, elt, li):
+    assert li.type == 'list', "Trying to concatenate with non-list."
+    return SNode('list', (elt,) + li.value)
+
 def _make_func(func):
     def impl(env, *args):
         value = func(*(a.value for a in args))
@@ -57,10 +70,6 @@ def _make_func(func):
         else:
             raise Exception("Unexpected return type of function: {}".format(type(value)))
     return SNode('function', impl)
-
-def _cons(env, elt, li):
-    assert li.type == 'list', "Trying to concatenate with non-list."
-    return SNode('list', (elt,) + li.value)
 
 def make_stdenv():
     """Return an SEnvironment with builtins."""
@@ -93,5 +102,6 @@ def make_stdenv():
     builtins.define('lambda', SNode('function', _lambda))
     builtins.define('define', SNode('function', _define))
     builtins.define('quote', SNode('function', _quote))
+    builtins.define('quasiquote', SNode('function', _quasiquote))
     return builtins
 
