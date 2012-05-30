@@ -9,3 +9,17 @@ def stdenv_quasiquote_test():
 
 def stdenv_unquote_test():
     eq_(seval_strip('`(1 ,(+ 1 1))', make_stdenv()), (1, 2))
+
+def stdenv_eval_test():
+    eq_(seval_strip('(eval `(+ 1 1) (this-env))', make_stdenv()), 2)
+
+def stdenv_restargs_test():
+    eq_(seval_strip('((~lambda (x . y) (apply + y)) 1 2 3)', make_stdenv()), 5)
+
+def stdenv_apply_test():
+    eq_(seval_strip('(apply + `(2 3))', make_stdenv()), 5)
+
+def stdenv_defun_test():
+    env = make_stdenv()
+    seval('(~defun add (a b) (+ a b))', env)
+    eq_(seval_strip('(add 1 2)', env), 3)

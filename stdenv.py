@@ -1,6 +1,7 @@
 from SEnvironment import SEnvironment
 from SNode import SNode
-from seval import seval_tree
+from seval import seval, seval_tree
+from sparse import sprint
 import operator
 
 
@@ -19,13 +20,20 @@ def _define(env, name, value):
 
 def _lambda(env, params, *code):
     """Return an anonymous function taking params and evaluating code."""
+    restargs = params.value and params.value[0].type == 'list'
+    nameargs = params.value[0] if restargs else params
     def impl(dummy_env, *args):
-        assert len(params.value) == len(args), "Expected {} args, got {}.".format(
-                len(params.value), len(args))
+        assert restargs or len(params.value) == len(args), (
+            "Expected {} args, got {}.".format(len(params.value), len(args)))
+        NON_SYMBOL_ERROR = "Trying to use a non-symbol as a parameter name!"
         inner_env = SEnvironment(env)
-        for p, a in zip(params.value, args):
-            assert p.type == 'id', "Trying to use a non-symbol as a parameter name!"
+        for p, a in zip(nameargs.value, args):
+            assert p.type == 'id', NON_SYMBOL_ERROR
             inner_env.define(p.value, a)
+        if restargs:
+            assert params.value[1].type == 'id', NON_SYMBOL_ERROR
+            rest = SNode('list', args[len(nameargs.value):])
+            inner_env.define(params.value[1].value, rest)
         for c in code[:-1]:
             seval_tree(c, inner_env)
         return seval_tree(code[-1], inner_env)
@@ -49,6 +57,19 @@ def _quasiquote(env, elt):
 def _cons(env, elt, li):
     assert li.type == 'list', "Trying to concatenate with non-list."
     return SNode('list', (elt,) + li.value)
+
+def _eval(real_env, expr, env):
+    assert env.type == 'env', "Passed in value is not an environment."
+    return seval_tree(expr, env.value)
+
+def _apply(env, f, args):
+    assert f.type == 'function', "Attempting to apply a non-function."
+    assert args.type == 'list', "Attempting to apply on non-list."
+    return f.value(env, *args.value)
+
+def _print(env, quote):
+    sprint(quote)
+    return SNode('none', None)
 
 def _make_func(func):
     def impl(env, *args):
@@ -89,12 +110,15 @@ def make_stdenv():
     builtins.define('1+', _make_func(lambda x: x-1))
     builtins.define('not', _make_func(operator.not_))
     builtins.define('read-int', _make_func(lambda: int(input(''))))
-    builtins.define('print', _make_func(lambda x: sprint(x)))
-    builtins.define('apply', _make_func(lambda f, args: f(*args)))
+    builtins.define('print', SNode('function', _print))
+    builtins.define('apply', SNode('function', _apply))
     builtins.define('list', _make_func(lambda *args: args))
     builtins.define('cons', SNode('function', _cons))
     builtins.define('head', _make_func(lambda x: x[0]))
     builtins.define('tail', _make_func(lambda x: x[1:]))
+    builtins.define('this-env', SNode('function', lambda env: SNode('env', env)))
+    builtins.define('parent-env', SNode('function', lambda env: SNode('env', env.parent)))
+    builtins.define('eval', SNode('function', _eval))
     builtins.define('nil', SNode('list', tuple()))
     builtins.define('#t', SNode('bool', True))
     builtins.define('#f', SNode('bool', False))
@@ -103,5 +127,11 @@ def make_stdenv():
     builtins.define('define', SNode('function', _define))
     builtins.define('quote', SNode('function', _quote))
     builtins.define('quasiquote', SNode('function', _quasiquote))
+    seval("""
+        (~define defun
+          (~lambda (name args body)
+            (eval `(~define ,name
+                     (~lambda ,args ,body)) (parent-env))))
+    """, builtins)
     return builtins
 
