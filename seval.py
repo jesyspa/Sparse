@@ -7,13 +7,14 @@ def seval(string, env=None):
     """Evaluate a string and return the result."""
     if env is None:
         env = SEnvironment()
-    tree = seval_tree(sparse(string), env)
-    print(tree)
-    return _strip_annotation(tree)
+    return seval_tree(sparse(string), env)
 
-def _strip_annotation(tree):
+def seval_strip(string, env=None):
+    return _strip_annotations(seval(string, env))
+
+def _strip_annotations(tree):
     if tree.type == 'list':
-        return tuple(_strip_annotation(e) for e in tree.value)
+        return tuple(_strip_annotations(e) for e in tree.value)
     return tree.value
 
 
