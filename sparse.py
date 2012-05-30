@@ -8,10 +8,14 @@ def sparse(string):
 
 def sunparse(tree):
     """Return the given value as a string with an S-expression."""
-    if tree.type == 'list':
-        return '(' + ' '.join([sunparse(e) for e in tree.value]) + ')'
-    else:
+    if tree.type != 'list':
         return str(tree.value)
+    elif len(tree.value) > 0 and tree.value[0].type == 'list':
+        inner = ' '.join([sunparse(e) for e in tree.value[0].value])
+        this = ' '.join([sunparse(e) for e in tree.value[1:]])
+        return '(' + inner + ' . ' + this + ')'
+    else:
+        return '(' + ' '.join([sunparse(e) for e in tree.value]) + ')'
 
 def sprint(quote):
     """Print the given value as an S-expression."""

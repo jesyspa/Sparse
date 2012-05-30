@@ -46,5 +46,5 @@ def sparse_unquote_test():
     eq_(sunparse(sparse("`(a ,b)")), '(~ quasiquote (a (unquote b)))')
 
 def sparse_dot_test():
-    eq_(sunparse(sparse("(1 . 2)")), '((1) 2)')
+    eq_(sunparse(sparse("(1 . 2)")), '(1 . 2)')
 
