@@ -7,12 +7,11 @@ def SInterp_basic_eval_test():
 
 def SInterp_define_test():
     interp = SInterpreter()
-    interp.seval('(define x 5)')
+    interp.seval('(~define x 5)')
     eq_(interp.seval('x'), 5)
 
 def SInterp_recursive_test():
     interp = SInterpreter()
-    interp.seval('(define f (lambda (y) (if (= y 0) 0 (f (- y 1)))))')
+    interp.seval('(~define f (~lambda (y) (~if (= y 0) 0 (f (- y 1)))))')
     eq_(interp.seval('(f 2)'), 0)
-
 

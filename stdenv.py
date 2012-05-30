@@ -4,70 +4,94 @@ from seval import seval_tree
 import operator
 
 
-def _if_impl(env, menv, cond, true_case, false_case):
+def _if(env, cond, true_case, false_case):
     """Evaluate and return true_case or false_case depending on cond."""
-    if seval_tree(cond, env, menv):
-        return seval_tree(true_case, env, menv)
+    if seval_tree(cond, env).value:
+        return seval_tree(true_case, env)
     else:
-        return seval_tree(false_case, env, menv)
+        return seval_tree(false_case, env)
 
-def _define_impl(env, menv, name, value):
+def _define(env, name, value):
     """Add the given name to the environment."""
     assert name.type == 'id', "Trying to define a non-identifier!"
-    env.define(name.value, seval_tree(value, env, menv))
+    env.define(name.value, seval_tree(value, env))
+    return SNode('none', None)
 
-def _lambda_impl(env, menv, params, *code):
+def _lambda(env, params, *code):
     """Return an anonymous function taking params and evaluating code."""
-    def impl(*args):
+    def impl(dummy_env, *args):
         assert len(params.value) == len(args), "Expected {} args, got {}.".format(
                 len(params.value), len(args))
         inner_env = SEnvironment(env)
         for p, a in zip(params.value, args):
-            assert p.type == 'id', "Trying to use a non-identifier as a parameter name!"
+            assert p.type == 'id', "Trying to use a non-symbol as a parameter name!"
             inner_env.define(p.value, a)
         for c in code[:-1]:
-            seval_tree(c, inner_env, menv)
-        return seval_tree(code[-1], inner_env, menv)
-    return impl
+            seval_tree(c, inner_env)
+        return seval_tree(code[-1], inner_env)
+    return SNode('function', impl)
 
-def _quote_impl(env, menv, elt):
+def _quote(env, elt):
     """Return the quoted object verbatim."""
     if elt.type != 'list':
-        return elt.value
-    return tuple(_quote_impl(env, menv, e) for e in elt.value)
+        return elt
+    return SNode('list', tuple(_quote(env, e) for e in elt.value))
+
+def _make_func(func):
+    def impl(env, *args):
+        value = func(*(a.value for a in args))
+        if isinstance(value, str):
+            return SNode('id', value)
+        elif isinstance(value, list):
+            return SNode('list', value)
+        elif isinstance(value, tuple):
+            return SNode('list', tuple(value))
+        elif isinstance(value, int):
+            return SNode('num', value)
+        elif isinstance(value, bool):
+            return SNode('bool', value)
+        elif isinstance(value, SNode):
+            return value
+        elif value is None:
+            return SNode('none', None)
+        else:
+            raise Exception("Unexpected return type of function: {}".format(type(value)))
+    return SNode('function', impl)
+
+def _cons(env, elt, li):
+    assert li.type == 'list', "Trying to concatenate with non-list."
+    return SNode('list', (elt,) + li.value)
 
 def make_stdenv():
-    """Return an env, menv pair."""
-    normal_names = SEnvironment()
-    normal_names.define('+', lambda *args: sum(args))
-    normal_names.define('-', operator.sub)
-    normal_names.define('*', operator.mul)
-    normal_names.define('/', operator.floordiv)
-    normal_names.define('%', operator.mod)
-    normal_names.define('=', operator.eq)
-    normal_names.define('/=', operator.ne)
-    normal_names.define('<', operator.lt)
-    normal_names.define('>', operator.gt)
-    normal_names.define('<=', operator.le)
-    normal_names.define('>=', operator.ge)
-    normal_names.define('1-', lambda x: x+1)
-    normal_names.define('1+', lambda x: x-1)
-    normal_names.define('not', operator.not_)
-    normal_names.define('read-int', lambda: int(input('')))
-    normal_names.define('print', lambda x: sprint(x))
-    normal_names.define('apply', lambda f, args: f(*args))
-    normal_names.define('list', lambda *args: args)
-    normal_names.define('cons', lambda x, y: [x] + y)
-    normal_names.define('head', lambda x: x[0])
-    normal_names.define('tail', lambda x: x[1:])
-    normal_names.define('nil', tuple())
-    normal_names.define('#t', True)
-    normal_names.define('#f', False)
-
-    special_forms = SEnvironment()
-    special_forms.define('if', _if_impl)
-    special_forms.define('lambda', _lambda_impl)
-    special_forms.define('define', _define_impl)
-    special_forms.define('quote', _quote_impl)
-    return normal_names, special_forms
+    """Return an SEnvironment with builtins."""
+    builtins = SEnvironment()
+    builtins.define('+', _make_func(lambda *args: sum(args)))
+    builtins.define('-', _make_func(operator.sub))
+    builtins.define('*', _make_func(operator.mul))
+    builtins.define('/', _make_func(operator.floordiv))
+    builtins.define('%', _make_func(operator.mod))
+    builtins.define('=', _make_func(operator.eq))
+    builtins.define('/=', _make_func(operator.ne))
+    builtins.define('<', _make_func(operator.lt))
+    builtins.define('>', _make_func(operator.gt))
+    builtins.define('<=', _make_func(operator.le))
+    builtins.define('>=', _make_func(operator.ge))
+    builtins.define('1-', _make_func(lambda x: x+1))
+    builtins.define('1+', _make_func(lambda x: x-1))
+    builtins.define('not', _make_func(operator.not_))
+    builtins.define('read-int', _make_func(lambda: int(input(''))))
+    builtins.define('print', _make_func(lambda x: sprint(x)))
+    builtins.define('apply', _make_func(lambda f, args: f(*args)))
+    builtins.define('list', _make_func(lambda *args: args))
+    builtins.define('cons', SNode('function', _cons))
+    builtins.define('head', _make_func(lambda x: x[0]))
+    builtins.define('tail', _make_func(lambda x: x[1:]))
+    builtins.define('nil', SNode('list', tuple()))
+    builtins.define('#t', SNode('bool', True))
+    builtins.define('#f', SNode('bool', False))
+    builtins.define('if', SNode('function', _if))
+    builtins.define('lambda', SNode('function', _lambda))
+    builtins.define('define', SNode('function', _define))
+    builtins.define('quote', SNode('function', _quote))
+    return builtins
 
