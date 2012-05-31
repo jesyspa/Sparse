@@ -57,4 +57,4 @@ def stdenv_append_test():
     eq_(seval_strip('(~append (1 2) (3 4) (5))', make_stdenv()), (1, 2, 3, 4, 5))
 
 def seval_unquote_splice_test():
-    eq_(seval_strip('`(1 ,@(2))', make_stdenv()), (1, 2))
+    eq_(seval_strip("`(1 ,@'(2))", make_stdenv()), (1, 2))

@@ -81,8 +81,8 @@ def p_unquoted_expr(p):
     p[0] = SNode('list', (SNode('id', 'unquote'), p[2]))
 
 def p_spliced_list(p):
-    "expr : COMMA AT LPAREN list RPAREN"
-    p[0] = SNode('list', (SNode('id', 'unquote-splice'), p[4]))
+    "expr : COMMA AT expr"
+    p[0] = SNode('list', (SNode('id', 'unquote-splice'), p[3]))
 
 def p_expr_from_list(p):
     "expr : LPAREN list RPAREN"

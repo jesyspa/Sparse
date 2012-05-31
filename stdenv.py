@@ -58,7 +58,7 @@ def _quasiquote(env, elt):
                 or e.value[0].value != 'unquote-splice'):
             result.append(_quasiquote(env, e))
         else:
-            result.extend(e.value[1].value)
+            result.extend(seval_tree(e.value[1], env).value)
     return SNode('list', tuple(result))
 
 def _cons(env, elt, li):
@@ -146,7 +146,7 @@ def make_stdenv():
         (~define defun
           (~lambda (name args . body)
             (eval `(~define ,name
-                     ,(append `(~lambda ,args) body)) (parent-env))))
+                     (~lambda ,args ,@body)) (parent-env))))
     """, builtins)
     return builtins
 

@@ -1,6 +1,6 @@
 """Provide functions for evaluation."""
 
-from sparse import sparse, sunparse
+from sparse import sparse, sunparse, sprint
 from SEnvironment import SEnvironment
 
 def seval(string, env=None):
