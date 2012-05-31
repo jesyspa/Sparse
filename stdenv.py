@@ -132,7 +132,8 @@ def make_stdenv():
     builtins.define('head', _make_func(lambda x: x[0]))
     builtins.define('tail', _make_func(lambda x: x[1:]))
     builtins.define('this-env', SNode('function', lambda env: SNode('env', env)))
-    builtins.define('parent-env', SNode('function', lambda env: SNode('env', env.parent)))
+    builtins.define('parent', SNode('function', lambda env, e: SNode('env',
+        e.value.parent)))
     builtins.define('eval', SNode('function', _eval))
     builtins.define('nil', SNode('list', tuple()))
     builtins.define('#t', SNode('bool', True))
@@ -148,8 +149,8 @@ def make_stdenv():
             (eval `(~define ,name
                      (~lambda ,args
                        (eval ((~lambda () ,@body))
-                             (parent-env))))
-                   (parent-env))))
+                             (parent (this-env)))))
+                   (parent (this-env)))))
     """, builtins)
     seval("""
         (~defmacro defun (name args . body)
