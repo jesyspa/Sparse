@@ -30,6 +30,7 @@ tokens = (
     'QUOTE',
     'QQUOTE',
     'COMMA',
+    'AT',
     'DOT',
     'SYMBOL',
     'NUMBER',
@@ -41,6 +42,7 @@ t_TILDE = '~'
 t_QUOTE = "'"
 t_QQUOTE = '`'
 t_COMMA = ','
+t_AT = '@'
 t_DOT = r'\.'
 t_SYMBOL = r'[a-zA-Z\-_?!+/*%=<>][a-zA-Z0-9\-_?!+/*%=<>]*'
 t_NUMBER = r'[0-9]+'
@@ -78,6 +80,10 @@ def p_unquoted_expr(p):
     "expr : COMMA expr"
     p[0] = SNode('list', (SNode('id', 'unquote'), p[2]))
 
+def p_spliced_list(p):
+    "expr : COMMA AT LPAREN list RPAREN"
+    p[0] = SNode('list', (SNode('id', 'unquote-splice'), p[4]))
+
 def p_expr_from_list(p):
     "expr : LPAREN list RPAREN"
     p[0] = p[2]
@@ -97,6 +103,9 @@ def p_rhslist_with_elem(p):
 def p_listpart_to_empty(p):
     "rhslist : "
     p[0] = tuple()
+
+def p_error(p):
+    raise Exception("Error near {}".format(p))
 
 def make_parser(*args, **kwargs):
     make_lexer()

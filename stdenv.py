@@ -52,7 +52,14 @@ def _quasiquote(env, elt):
     if (len(elt.value) > 0 and elt.value[0].type == 'id'
             and elt.value[0].value == 'unquote'):
         return seval_tree(elt.value[1], env)
-    return SNode('list', tuple(_quasiquote(env, e) for e in elt.value))
+    result = []
+    for e in elt.value:
+        if (e.type != 'list' or not elt.value
+                or e.value[0].value != 'unquote-splice'):
+            result.append(_quasiquote(env, e))
+        else:
+            result.extend(e.value[1].value)
+    return SNode('list', tuple(result))
 
 def _cons(env, elt, li):
     assert li.type == 'list', "Trying to concatenate with non-list."
@@ -70,6 +77,13 @@ def _apply(env, f, args):
 def _print(env, quote):
     sprint(quote)
     return SNode('none', None)
+
+def _append(env, *lists):
+    result = tuple()
+    for li in lists:
+        assert li.type == 'list', "Attempting to append a non-list."
+        result += li.value
+    return SNode('list', result)
 
 def _make_func(func):
     def impl(env, *args):
@@ -91,13 +105,6 @@ def _make_func(func):
         else:
             raise Exception("Unexpected return type of function: {}".format(type(value)))
     return SNode('function', impl)
-
-def _append(env, *lists):
-    result = tuple()
-    for li in lists:
-        assert li.type == 'list', "Attempting to append a non-list."
-        result += li.value
-    return SNode('list', result)
 
 def make_stdenv():
     """Return an SEnvironment with builtins."""

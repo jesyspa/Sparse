@@ -48,3 +48,6 @@ def sparse_unquote_test():
 def sparse_dot_test():
     eq_(sunparse(sparse("(1 . 2)")), '(1 . 2)')
 
+def sparse_split_test():
+    eq_(sunparse(sparse("`(1 ,@(2))")), '(~ quasiquote (1 (unquote-splice (2))))')
+
