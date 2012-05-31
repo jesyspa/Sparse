@@ -152,10 +152,9 @@ def make_stdenv():
                    (parent-env))))
     """, builtins)
     seval("""
-        (~define defun
-          (~lambda (name args . body)
-            (eval `(~define ,name
-                     (~lambda ,args ,@body)) (parent-env))))
+        (~defmacro defun (name args . body)
+          `(~define ,name
+            (~lambda ,args ,@body)))
     """, builtins)
     return builtins
 
