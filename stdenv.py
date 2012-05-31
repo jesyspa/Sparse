@@ -156,5 +156,9 @@ def make_stdenv():
           `(~define ,name
             (~lambda ,args ,@body)))
     """, builtins)
+    seval("""
+        (~defmacro begin (. body)
+          `((lambda () ,@body)))
+    """, builtins)
     return builtins
 
