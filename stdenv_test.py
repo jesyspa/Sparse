@@ -58,3 +58,15 @@ def stdenv_append_test():
 
 def seval_unquote_splice_test():
     eq_(seval_strip("`(1 ,@'(2))", make_stdenv()), (1, 2))
+
+def stdenv_defmacro_test():
+    env = make_stdenv()
+    called = 0
+    def f(e):
+        nonlocal called
+        called += 1
+        return SNode('num', 5)
+    env.define('f', SNode('function', f))
+    seval('(~defmacro twice (a) `(+ ,a ,a))', env)
+    eq_(seval_strip('(~twice (f))', env), 10)
+    eq_(called, 2)

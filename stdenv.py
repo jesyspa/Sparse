@@ -54,7 +54,7 @@ def _quasiquote(env, elt):
         return seval_tree(elt.value[1], env)
     result = []
     for e in elt.value:
-        if (e.type != 'list' or not elt.value
+        if (e.type != 'list' or not e.value
                 or e.value[0].value != 'unquote-splice'):
             result.append(_quasiquote(env, e))
         else:
@@ -142,6 +142,15 @@ def make_stdenv():
     builtins.define('define', SNode('function', _define))
     builtins.define('quote', SNode('function', _quote))
     builtins.define('quasiquote', SNode('function', _quasiquote))
+    seval("""
+        (~define defmacro
+          (~lambda (name args . body)
+            (eval `(~define ,name
+                     (~lambda ,args
+                       (eval ((~lambda () ,@body))
+                             (parent-env))))
+                   (parent-env))))
+    """, builtins)
     seval("""
         (~define defun
           (~lambda (name args . body)
