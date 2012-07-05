@@ -41,9 +41,7 @@ def _lambda(env, params, *code):
 
 def _quote(env, elt):
     """Return the quoted object verbatim."""
-    if elt.type != 'list':
-        return elt
-    return SNode('list', tuple(_quote(env, e) for e in elt.value))
+    return elt
 
 def _quasiquote(env, elt):
     """Return the quoted expression, unquoting unquotes."""
