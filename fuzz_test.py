@@ -1,21 +1,29 @@
 from sparse import sparse, sprint
-from seval import seval_tree
+from seval import seval_tree, seval
 from stdenv import make_stdenv
 from SNode import SNode
 from SException import SException
 from random import random, randint, choice
 
+FUZZ_TIMES = 10000
+
 def fuzz_test_generator():
-    FUZZ_TIMES = 1
     program = sparse("""
     ((~lambda ()
       (~define x 10)
       (~define y 20)
+      (~define z '(1 2 3))
+      (~define li '(~ if (nil? '(2)) (add 4 5) (set! x 20)))
       (~defun add (x y) (+ x y))
       (add (~if (< x y) x y) x)))
     """)
+    env = make_stdenv()
+    env.define('a', sparse('10'))
+    env.define('b', sparse('(4 5 6)'))
+    env.define('c', sparse('(~define t 10)'))
+    env.define('d', sparse('(+ 20 20)'))
+    env.define('e', seval('(~lambda (x) (* x 2))', env))
     for i in range(FUZZ_TIMES):
-        env = make_stdenv()
         yield do_fuzz, random_modify(env, program), env
 
 def make_list(env, tree, depth):
@@ -50,7 +58,6 @@ def record_issue(program, e):
     sprint(program)
     print("Error: ", e)
     
-
 def do_fuzz(program, env):
     try:
         sprint(program)

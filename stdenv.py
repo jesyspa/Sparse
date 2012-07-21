@@ -56,9 +56,11 @@ def _lambda(env, *args):
         return seval_tree(code[-1], inner_env)
     return SNode('function', impl)
 
-def _quote(env, elt):
+def _quote(env, *args):
     """Return the quoted object verbatim."""
-    return elt
+    if len(args) != 1:
+        raise SException("quote takes 1 parameter ({} given).".format(len(args)))
+    return args[0]
 
 def _quasiquote(env, elt):
     """Return the quoted expression, unquoting unquotes."""
