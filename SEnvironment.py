@@ -1,3 +1,5 @@
+from SException import SException
+
 class SEnvironment:
     """Represents a layered symbol table."""
     def __init__(self, parent=None):
@@ -7,8 +9,8 @@ class SEnvironment:
 
     @property
     def parent(self):
-        assert self._parent is not None, (
-                "Parent environment of global requested.")
+        if self._parent is None:
+            raise SException("Parent environment of global requested.")
         return self._parent
 
     def lookup(self, key):
@@ -19,7 +21,7 @@ class SEnvironment:
         """
         env = self._get_env_with(key)
         if env is None:
-            raise Exception("Use of undefined variable {}.".format(key))
+            raise SException("Use of undefined variable {}.".format(key))
         return env[key]
 
     def set(self, key, value):
@@ -30,7 +32,7 @@ class SEnvironment:
         """
         env = self._get_env_with(key)
         if env is None:
-            raise Exception("Cannot set undefined variable {}.".format(key))
+            raise SException("Cannot set undefined variable {}.".format(key))
         env[key] = value
 
     def define(self, key, value):

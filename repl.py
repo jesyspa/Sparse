@@ -2,6 +2,7 @@
 
 from sparse import sprint
 from SInterpreter import SInterpreter
+from SException import SException
 
 def main():
     """Run the REPL."""
@@ -18,8 +19,8 @@ def main():
         except EOFError:
             print('Bye')
             return
-        except Exception as e:
-            print('Error: ' + str(e))
+        except SException as e:
+            print('Error:', e)
     
 
 if __name__ == '__main__':
